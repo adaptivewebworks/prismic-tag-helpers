@@ -3,37 +3,51 @@ pool:
 
 variables:
   buildConfiguration: 'Release'
-  PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
   packageAndPublish: $[ and(
         ne(variables['Build.Reason'], 'PullRequest'), 
         or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
           eq(variables['Build.SourceBranch'], 'refs/heads/dev')
         )
     ) ]
-  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
-    additionalPkgArgs: ' --version-suffix $(PRERELEASE_VERSION)'
-  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    additionalPkgArgs: ''
   
+jobs:
+- job: build_and_test
+  steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '5.0.x'
 
-steps:
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '5.0.x'
-- script: dotnet clean --configuration $(buildConfiguration)
-  displayName: 'dotnet clean $(buildConfiguration)'
+  - script: dotnet clean --configuration $(buildConfiguration)
+    displayName: 'dotnet clean $(buildConfiguration)'
 
-- script: dotnet build --configuration $(buildConfiguration)
-  displayName: 'dotnet build $(buildConfiguration)'
+  - script: dotnet build --configuration $(buildConfiguration)
+    displayName: 'dotnet build $(buildConfiguration)'
 
-- script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
-  displayName: 'dotnet test $(buildConfiguration)'
-
-${{ if eq(variables['packageAndPublish'], true) }}:
+  - script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
+    displayName: 'dotnet test $(buildConfiguration)'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: 'pkg'
+    
+- job: pack_and_publish 
+  dependsOn: build_and_test
+  condition: eq(variables['packageAndPublish'], true)
+  variables:
+    PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
+    # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
+    additionalPkgArgs: ' --version-suffix $(PRERELEASE_VERSION)'
+    # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    # additionalPkgArgs: ''
+  steps:
+  - task: DownloadBuildArtifacts@0
+    displayName: 'Download Build Artifacts'
+    inputs:
+      artifactName: 'pkg'
+      downloadPath: $(System.DefaultWorkingDirectory)
   - task: DotNetCoreCLI@2
     displayName: 'Create NuGet Packages'
-    # condition: eq(variables['packageAndPublish'], true)
     inputs:
       command: custom
       custom: pack
