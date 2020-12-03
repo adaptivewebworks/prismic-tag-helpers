@@ -10,13 +10,15 @@ namespace AdaptiveWebworks.Prismic.AspNetCore.Mvc
         const string href = "prismic-href";
         private readonly DocumentLinkResolver _linkResolver;
 
+        /// <summary>
+        /// We override the use of fragment here for a more natural html syntax
+        /// </summary>
+        /// <value></value>
         [HtmlAttributeName(href)]
         public ILink Link
         {
-            set
-            {
-                Fragment = value;
-            }
+            set => Fragment = value;
+            get => Fragment;
         }
 
         public LinkResolverTagHelper(DocumentLinkResolver linkResolver)
@@ -26,8 +28,6 @@ namespace AdaptiveWebworks.Prismic.AspNetCore.Mvc
 
         public override void Process(TagHelperContext context, TagHelperOutput output)
         {
-            output.Attributes.RemoveAll(href);
-
             if (Fragment == null)
             {
                 output.TagName = "span";

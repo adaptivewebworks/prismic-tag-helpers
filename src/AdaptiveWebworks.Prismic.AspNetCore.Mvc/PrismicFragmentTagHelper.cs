@@ -8,6 +8,7 @@ namespace AdaptiveWebworks.Prismic.AspNetCore.Mvc
     {
         private TFragment _fragment;
 
+        [HtmlAttributeName("prismic-fragment")]
         public virtual TFragment Fragment
         {
             get
@@ -24,8 +25,10 @@ namespace AdaptiveWebworks.Prismic.AspNetCore.Mvc
             set { _fragment = value; }
         }
 
+        [HtmlAttributeName("prismic-document")]
         public Document Document { get; set; }
 
+        [HtmlAttributeName("prismic-field")]
         public string Field { get; set; }
 
         protected abstract TFragment GetField();

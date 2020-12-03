@@ -30,13 +30,13 @@ You can improve this by implementing your own class that extends `DocumentLinkRe
 We can make rendering of Rich Text much easier by using the structured text tag helper. You can use the tag helper with a fragment like this.
 
 ```html
-<structured-text fragment="@Model.StructuredTextProperty" />
+<structured-text prismic-fragment="@Model.StructuredTextProperty" />
 ```
 
 When working with a Prismic Document you can do the following.
 
 ```html
-<structured-text document="@Model" field="document_type.field_name" />
+<structured-text prismic-document="@Model" prismic-field="document_type.field_name" />
 ```
 
 ### Link resolver tag helper
@@ -49,7 +49,7 @@ We can make rendering of document links less cumbersome by using the link resolv
 When working with a prismic document and field you can create a link as follows.
 
 ```html
-<a document="@Model" field="document_type.field_name">A link to a document</a>
+<a prismic-document="@Model" prismic-field="document_type.field_name">A link to a document</a>
 ```
 
 ## Creating your own custom fragment tag helpers
