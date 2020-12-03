@@ -30,8 +30,7 @@ jobs:
   condition: |
     and(
       ne(variables['Build.Reason'], 'PullRequest'), 
-      or(
-        eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
+      or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
         eq(variables['Build.SourceBranch'], 'refs/heads/dev')
       )
     )
@@ -46,7 +45,6 @@ jobs:
       ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
         arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
       zipAfterPublish: true
-    condition: and(succeeded(),
 
   - task: NuGetCommand@2
     inputs:
