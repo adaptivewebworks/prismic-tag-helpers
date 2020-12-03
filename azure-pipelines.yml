@@ -42,7 +42,7 @@ jobs:
       command: custom
       custom: pack
       # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
-      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build $(VERSION_SUFFIX)
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m $(VERSION_SUFFIX)
       # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
         # arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
       zipAfterPublish: true
