@@ -31,11 +31,10 @@ jobs:
   dependsOn: build_and_test
   condition: eq(variables['packageAndPublish'], true)
   variables:
-    PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
-    # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
-    additionalPkgArgs: ' --version-suffix $(PRERELEASE_VERSION)'
-    # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-    # additionalPkgArgs: ''
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
+      VERSION_SUFFIX: '--version-suffix pre.$(Build.BuildNumber)'
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      VERSION_SUFFIX: ''
   steps:
   - task: DotNetCoreCLI@2
     displayName: 'Create NuGet Packages'
@@ -43,7 +42,7 @@ jobs:
       command: custom
       custom: pack
       # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
-      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build$(addtionalPkgArgs)
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build $(VERSION_SUFFIX)
       # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
         # arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
       zipAfterPublish: true
