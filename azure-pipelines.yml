@@ -10,6 +10,11 @@ variables:
           eq(variables['Build.SourceBranch'], 'refs/heads/dev')
         )
     ) ]
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
+    additionalPkgArgs: ' --version-suffix $(PRERELEASE_VERSION)'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    additionalPkgArgs: ''
+  
 
 steps:
 - task: UseDotNet@2
@@ -25,17 +30,18 @@ steps:
 - script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
   displayName: 'dotnet test $(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  displayName: 'Create NuGet Packages'
-  condition: eq(variables['packageAndPublish'], true)
-  inputs:
-    command: custom
-    custom: pack
-    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
-      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages --version-suffix $(PRERELEASE_VERSION) -v m --no-build
-    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
-      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
-    zipAfterPublish: true
+${{ if eq(variables['packageAndPublish'], true) }}:
+  - task: DotNetCoreCLI@2
+    displayName: 'Create NuGet Packages'
+    # condition: eq(variables['packageAndPublish'], true)
+    inputs:
+      command: custom
+      custom: pack
+      # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build$(addtionalPkgArgs)
+      # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
+        # arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
+      zipAfterPublish: true
 
 # - task: NuGetCommand@2
 #   inputs:
