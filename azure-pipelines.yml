@@ -1,54 +1,53 @@
-# ASP.NET Core
-# Build and test ASP.NET Core projects targeting .NET Core.
-# Add steps that run tests, create a NuGet package, deploy, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
-
-pr: none
-
 pool:
   vmImage: 'ubuntu-latest'
 
 variables:
   buildConfiguration: 'Release'
-  PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
-
-jobs: 
+  packageAndPublish: $[ and(
+        ne(variables['Build.Reason'], 'PullRequest'), 
+        or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
+          eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+        )
+    ) ]
+  
+jobs:
 - job: build_and_test
   displayName: 'Build & Test'
   steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '5.0.x'
+
   - script: dotnet clean --configuration $(buildConfiguration)
-    displayName: 'dotnet clean $(buildConfiguration)'
+    displayName: '.NET - clean'
 
   - script: dotnet build --configuration $(buildConfiguration)
-    displayName: 'dotnet build $(buildConfiguration)'
+    displayName: '.NET - build'
 
   - script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
-    displayName: 'dotnet test $(buildConfiguration)'
-
-- job: pack_and_publish
+    displayName: '.NET - test'
+    
+- job: pack_and_publish 
   displayName: 'Package & Publish'
-  condition: |
-    and(
-      ne(variables['Build.Reason'], 'PullRequest'), 
-      or(
-        eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
-        eq(variables['Build.SourceBranch'], 'refs/heads/dev')
-      )
-    )
+  dependsOn: build_and_test
+  condition: eq(variables['packageAndPublish'], true)
+  variables:
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:
+      VERSION_SUFFIX: '--version-suffix pre.$(Build.BuildNumber)'
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+      VERSION_SUFFIX: ''
   steps:
   - task: DotNetCoreCLI@2
-    displayName: 'Create NuGet Packages'
+    displayName: '.NET - Create Packages'
     inputs:
       command: custom
       custom: pack
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
-        arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages --version-suffix $(PRERELEASE_VERSION) -v m --no-build
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
-        arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m $(VERSION_SUFFIX)
       zipAfterPublish: true
-    condition: and(succeeded(),
 
   - task: NuGetCommand@2
+    displayName: 'Publish NuGet package'
     inputs:
       command: 'push'
       packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/packages/*.symbols.nupkg'
