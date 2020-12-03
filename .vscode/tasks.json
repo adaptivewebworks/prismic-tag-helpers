@@ -1,0 +1,63 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "publish",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "publish",
+                "${workspaceFolder}/tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "/p:CollectCoverage=true",
+                "/p:CoverletOutput=./TestResults/lcov",
+                "/p:CoverletOutputFormat=lcov",
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests/"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "test:watch",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "watch",
+                "test",
+                "/p:CollectCoverage=true",
+                "/p:CoverletOutput=./TestResults/lcov",
+                "/p:CoverletOutputFormat=lcov",
+                "${workspaceFolder}/tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests.csproj",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/tests/AdaptiveWebworks.Prismic.AspNetCore.Mvc.Tests/"
+            },
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}
