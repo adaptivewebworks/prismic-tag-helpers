@@ -5,14 +5,14 @@ variables:
   buildConfiguration: 'Release'
   PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
   packageAndPublish: |
-  $[
-    and(
-      ne(variables['Build.Reason'], 'PullRequest'), 
-      or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
-        eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+    $[
+      and(
+        ne(variables['Build.Reason'], 'PullRequest'), 
+        or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
+          eq(variables['Build.SourceBranch'], 'refs/heads/dev')
+        )
       )
-    )
-  ]
+    ]
 
 steps:
 - task: UseDotNet@2
