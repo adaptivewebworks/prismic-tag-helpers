@@ -4,50 +4,45 @@ pool:
 variables:
   buildConfiguration: 'Release'
   PRERELEASE_VERSION: 'pre.$(Build.BuildNumber)'
-
-jobs: 
-- job: build_and_test
-  displayName: 'Build & Test'
-  steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '5.0.x'
-  - script: dotnet clean --configuration $(buildConfiguration)
-    displayName: 'dotnet clean $(buildConfiguration)'
-
-  - script: dotnet build --configuration $(buildConfiguration)
-    displayName: 'dotnet build $(buildConfiguration)'
-
-  - script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
-    displayName: 'dotnet test $(buildConfiguration)'
-
-- job: pack_and_publish
-  displayName: 'Package & Publish'
-  condition: |
+  packageAndPublish: |
     and(
       ne(variables['Build.Reason'], 'PullRequest'), 
       or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), 
         eq(variables['Build.SourceBranch'], 'refs/heads/dev')
       )
     )
-  steps:
-  - task: DotNetCoreCLI@2
-    displayName: 'Create NuGet Packages'
-    inputs:
-      command: custom
-      custom: pack
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
-        arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages --version-suffix $(PRERELEASE_VERSION) -v m --no-build
-      ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
-        arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
-      zipAfterPublish: true
 
-  - task: NuGetCommand@2
-    inputs:
-      command: 'push'
-      packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/packages/*.symbols.nupkg'
-      nuGetFeedType: 'external'
-      allowPackageConflicts: true
-      publishFeedCredentials: 'NuGet.org'
-    condition: succeeded()
+steps:
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '5.0.x'
+- script: dotnet clean --configuration $(buildConfiguration)
+  displayName: 'dotnet clean $(buildConfiguration)'
+
+- script: dotnet build --configuration $(buildConfiguration)
+  displayName: 'dotnet build $(buildConfiguration)'
+
+- script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
+  displayName: 'dotnet test $(buildConfiguration)'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Create NuGet Packages'
+  condition: $(packageAndPublish)
+  inputs:
+    command: custom
+    custom: pack
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/dev') }}:  
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages --version-suffix $(PRERELEASE_VERSION) -v m --no-build
+    ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:  
+      arguments: -c $(buildConfiguration) -o $(Build.ArtifactStagingDirectory)/packages -v m --no-build
+    zipAfterPublish: true
+
+# - task: NuGetCommand@2
+#   inputs:
+#     command: 'push'
+#     packagesToPush: '$(Build.ArtifactStagingDirectory)/packages/*.nupkg;!$(Build.ArtifactStagingDirectory)/packages/*.symbols.nupkg'
+#     nuGetFeedType: 'external'
+#     allowPackageConflicts: true
+#     publishFeedCredentials: 'NuGet.org'
+#   condition: succeeded()
