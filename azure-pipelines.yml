@@ -9,6 +9,10 @@ jobs:
 - job: build_and_test
   displayName: 'Build & Test'
   steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '5.0.x'
   - script: dotnet clean --configuration $(buildConfiguration)
     displayName: 'dotnet clean $(buildConfiguration)'
 
