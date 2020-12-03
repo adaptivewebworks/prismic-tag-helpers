@@ -26,10 +26,6 @@ jobs:
 
   - script: dotnet test tests/**/*.csproj --configuration $(buildConfiguration) --no-build
     displayName: 'dotnet test $(buildConfiguration)'
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)'
-      artifactName: 'pkg'
     
 - job: pack_and_publish 
   dependsOn: build_and_test
@@ -41,11 +37,6 @@ jobs:
     # ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
     # additionalPkgArgs: ''
   steps:
-  - task: DownloadBuildArtifacts@0
-    displayName: 'Download Build Artifacts'
-    inputs:
-      artifactName: 'pkg'
-      downloadPath: $(System.DefaultWorkingDirectory)
   - task: DotNetCoreCLI@2
     displayName: 'Create NuGet Packages'
     inputs:
